@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import dayjs from 'dayjs';
 import { ReactComponent as DayCloudy } from './images/day-cloudy.svg';
@@ -133,6 +133,9 @@ function App() {
     observationTime: '2020-12-12 22:10:00',
   });
 
+  useEffect(() => {
+    getWeatherData();
+  }, []);
   const getWeatherData = () => {
     fetch(
       `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
@@ -142,6 +145,8 @@ function App() {
         console.log(records);
         const locationData = records.location[0];
         const weatherInfo = locationData.weatherElement;
+        const locationName = locationData.locationName;
+        const observationTime = locationData.time.obs;
 
         const weatherData = weatherInfo.reduce(
           (data, { elementName, elementValue }) => {
@@ -150,24 +155,12 @@ function App() {
             }
             return data;
           },
-          {}
+          { locationName, observationTime }
         );
-        // const windSpeed = weatherInfo.find(
-        //   ({ elementName }) => elementName === 'WDSD'
-        // ).elementValue;
-        // const temperature = weatherInfo.find(
-        //   ({ elementName }) => elementName === 'TEMP'
-        // ).elementValue;
-        // const description = weatherInfo.find(
-        //   ({ elementName }) => elementName === 'Weather'
-        // ).elementValue;
-        const locationName = locationData.locationName;
-        const observationTime = locationData.time.obs;
+
         setCurrentWeather({
           ...currentWeather,
           ...weatherData,
-          locationName,
-          observationTime,
         });
       });
   };
