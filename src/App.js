@@ -119,42 +119,84 @@ const theme = {
   },
 };
 
+const AUTHORIZATION_KEY = 'CWB-9E163ECD-9B12-43E7-8C7E-8C380EF33A6B';
+const LOCATION_NAME = '臺北';
+
 function App() {
   const [currecnTheme, setCurrentTheme] = useState('light');
   const [currentWeather, setCurrentWeather] = useState({
-    locationName: '台北市',
-    description: '多雲時晴',
-    windSpeed: 1.1,
-    temperature: 22.3,
+    locationName: '臺北市',
+    Weather: '多雲時晴',
+    WDSD: 1.1,
+    TEMP: 22.3,
     rainPossibilities: 48.3,
-    observation: '2020-12-12 22:10:00',
+    observationTime: '2020-12-12 22:10:00',
   });
+
+  const getWeatherData = () => {
+    fetch(
+      `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
+    )
+      .then((resp) => resp.json())
+      .then(({ records }) => {
+        console.log(records);
+        const locationData = records.location[0];
+        const weatherInfo = locationData.weatherElement;
+
+        const weatherData = weatherInfo.reduce(
+          (data, { elementName, elementValue }) => {
+            if (['WDSD', 'TEMP', 'Weather'].includes(elementName)) {
+              data[elementName] = elementValue;
+            }
+            return data;
+          },
+          {}
+        );
+        // const windSpeed = weatherInfo.find(
+        //   ({ elementName }) => elementName === 'WDSD'
+        // ).elementValue;
+        // const temperature = weatherInfo.find(
+        //   ({ elementName }) => elementName === 'TEMP'
+        // ).elementValue;
+        // const description = weatherInfo.find(
+        //   ({ elementName }) => elementName === 'Weather'
+        // ).elementValue;
+        const locationName = locationData.locationName;
+        const observationTime = locationData.time.obs;
+        setCurrentWeather({
+          ...currentWeather,
+          ...weatherData,
+          locationName,
+          observationTime,
+        });
+      });
+  };
   return (
     <ThemeProvider theme={theme[currecnTheme]}>
       <Container>
         <WeatherCard>
           <Location>{currentWeather.locationName}</Location>
-          <Description>{currentWeather.description}</Description>
+          <Description>{currentWeather.Weather}</Description>
           <CurrentWeather>
             <Temperature>
-              {currentWeather.temperature} <Celsius>C</Celsius>
+              {Number(currentWeather.TEMP)} <Celsius>C</Celsius>
             </Temperature>
             <DayCloudyIcon />
           </CurrentWeather>
           <AirFlow>
             <AirFlowIcon />
-            {currentWeather.windSpeed} m/h
+            {currentWeather.WDSD} m/h
           </AirFlow>
           <Rain>
             <RainIcon />
             {Math.round(currentWeather.rainPossibilities)}%
           </Rain>
-          <Refresh>
+          <Refresh onClick={getWeatherData}>
             最後觀測時間：{' '}
             {new Intl.DateTimeFormat('zh-TW', {
               hour: 'numeric',
               minute: 'numeric',
-            }).format(dayjs(currentWeather.observation))}
+            }).format(dayjs(currentWeather.observationTime))}
             <RefreshIcon />
           </Refresh>
         </WeatherCard>
