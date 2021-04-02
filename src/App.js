@@ -5,6 +5,7 @@ import { ReactComponent as DayCloudy } from './images/day-cloudy.svg';
 import { ReactComponent as RainIcon } from './images/rain.svg';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
 import { ReactComponent as RefreshIcon } from './images/refresh.svg';
+import { ReactComponent as LoadingIcon } from './images/loading.svg';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -87,11 +88,21 @@ const Refresh = styled.div`
   display: inline-flex;
   align-items: flex-end;
   color: ${({ theme }) => theme.textColor};
+  @keyframes rotate {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
   svg {
     margin-left: 10px;
     width: 15px;
     height: 15px;
     cursor: pointer;
+    animation: rotate infinite 1.5s linear;
+    animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
   }
 `;
 
@@ -131,24 +142,33 @@ function App() {
     TEMP: 22.3,
     rainPossibilities: 48.3,
     observationTime: '2020-12-12 22:10:00',
+    isLoading: false,
   });
+
+  const {
+    locationName,
+    Weather,
+    WDSD,
+    TEMP,
+    rainPossibilities,
+    observationTime,
+    isLoading,
+  } = currentWeather;
 
   useEffect(() => {
     getWeatherData();
   }, []);
   const getWeatherData = () => {
+    setCurrentWeather((prevState) => ({ ...prevState, isLoading: true }));
     fetch(
       `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
     )
       .then((resp) => resp.json())
       .then(({ records }) => {
-        console.log(records);
-        const locationData = records.location[0];
-        const weatherInfo = locationData.weatherElement;
-        const locationName = locationData.locationName;
-        const observationTime = locationData.time.obs;
+        const { weatherElement, locationName, time } = records.location[0];
+        const observationTime = time.obs;
 
-        const weatherData = weatherInfo.reduce(
+        const weatherData = weatherElement.reduce(
           (data, { elementName, elementValue }) => {
             if (['WDSD', 'TEMP', 'Weather'].includes(elementName)) {
               data[elementName] = elementValue;
@@ -161,6 +181,7 @@ function App() {
         setCurrentWeather({
           ...currentWeather,
           ...weatherData,
+          isLoading: false,
         });
       });
   };
@@ -168,29 +189,29 @@ function App() {
     <ThemeProvider theme={theme[currecnTheme]}>
       <Container>
         <WeatherCard>
-          <Location>{currentWeather.locationName}</Location>
-          <Description>{currentWeather.Weather}</Description>
+          <Location>{locationName}</Location>
+          <Description>{Weather}</Description>
           <CurrentWeather>
             <Temperature>
-              {Number(currentWeather.TEMP)} <Celsius>C</Celsius>
+              {Number(TEMP)} <Celsius>C</Celsius>
             </Temperature>
             <DayCloudyIcon />
           </CurrentWeather>
           <AirFlow>
             <AirFlowIcon />
-            {currentWeather.WDSD} m/h
+            {WDSD} m/h
           </AirFlow>
           <Rain>
             <RainIcon />
-            {Math.round(currentWeather.rainPossibilities)}%
+            {Math.round(rainPossibilities)}%
           </Rain>
-          <Refresh onClick={getWeatherData}>
+          <Refresh isLoading={isLoading} onClick={getWeatherData}>
             最後觀測時間：{' '}
             {new Intl.DateTimeFormat('zh-TW', {
               hour: 'numeric',
               minute: 'numeric',
-            }).format(dayjs(currentWeather.observationTime))}
-            <RefreshIcon />
+            }).format(dayjs(observationTime))}
+            {isLoading ? <LoadingIcon /> : <RefreshIcon />}
           </Refresh>
         </WeatherCard>
       </Container>
