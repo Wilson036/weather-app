@@ -158,12 +158,23 @@ function App() {
   } = weatherInfo;
 
   useEffect(() => {
-    getWeatherData();
-    getWeatherForcastData();
+    const fetchData = async () => {
+      const [currentWeather, weatherForcast] = await Promise.all([
+        getWeatherData(),
+        getWeatherForcastData(),
+      ]);
+
+      setWeatherInfo((prevState) => ({
+        ...prevState,
+        ...weatherForcast,
+        ...currentWeather,
+        isLoading: false,
+      }));
+    };
+    fetchData();
   }, []);
   const getWeatherData = () => {
-    setWeatherInfo((prevState) => ({ ...prevState, isLoading: true }));
-    fetch(
+    return fetch(
       `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
     )
       .then((resp) => resp.json())
@@ -171,7 +182,7 @@ function App() {
         const { weatherElement, locationName, time } = records.location[0];
         const observationTime = time.obs;
 
-        const weatherData = weatherElement.reduce(
+        return weatherElement.reduce(
           (data, { elementName, elementValue }) => {
             if (['WDSD', 'TEMP', 'Weather'].includes(elementName)) {
               data[elementName] = elementValue;
@@ -180,15 +191,10 @@ function App() {
           },
           { locationName, observationTime }
         );
-
-        setWeatherInfo({
-          ...weatherInfo,
-          ...weatherData,
-        });
       });
   };
   const getWeatherForcastData = () => {
-    fetch(
+    return fetch(
       `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_FORECAST_NAME}`
     )
       .then((resp) => resp.json())
@@ -205,14 +211,13 @@ function App() {
           {}
         );
         const { Wx, PoP, CI } = fetchData;
-        setWeatherInfo((prevState) => ({
-          ...prevState,
+
+        return {
           description: Wx.parameterName,
           WeatherCode: Wx.parameterValue,
           rainPossibilities: PoP.parameterName,
           comfortability: CI.parameterName,
-          isLoading: false,
-        }));
+        };
       });
   };
   return (
