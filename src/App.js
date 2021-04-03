@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import dayjs from 'dayjs';
-import { ReactComponent as DayCloudy } from './images/day-cloudy.svg';
 import { ReactComponent as RainIcon } from './images/rain.svg';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
 import { ReactComponent as RefreshIcon } from './images/refresh.svg';
 import { ReactComponent as LoadingIcon } from './images/loading.svg';
+import WeatherIcon from 'components/WeatherIcon';
+import { getMoment } from 'utils/helper';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -106,10 +107,6 @@ const Refresh = styled.div`
   }
 `;
 
-const DayCloudyIcon = styled(DayCloudy)`
-  flex-basis: 30%;
-`;
-
 const theme = {
   light: {
     backgroundColor: '#ededed',
@@ -149,10 +146,13 @@ function App() {
     Weather,
     WDSD,
     TEMP,
+    WeatherCode,
     rainPossibilities,
     observationTime,
     isLoading,
   } = weatherInfo;
+
+  const moment = useMemo(() => getMoment(LOCATION_FORECAST_NAME), []);
 
   const fetchData = useCallback(async () => {
     const [currentWeather, weatherForcast] = await Promise.all([
@@ -169,6 +169,7 @@ function App() {
   }, []);
   useEffect(() => {
     fetchData();
+    setCurrentTheme(moment === 'day' ? 'light' : 'dark');
   }, [fetchData]);
 
   return (
@@ -181,7 +182,7 @@ function App() {
             <Temperature>
               {Number(TEMP)} <Celsius>C</Celsius>
             </Temperature>
-            <DayCloudyIcon />
+            <WeatherIcon weatherCode={WeatherCode} moment={moment} />
           </CurrentWeather>
           <AirFlow>
             <AirFlowIcon />
