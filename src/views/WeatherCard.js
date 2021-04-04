@@ -5,7 +5,9 @@ import { ReactComponent as RainIcon } from '../images/rain.svg';
 import { ReactComponent as AirFlowIcon } from '../images/airFlow.svg';
 import { ReactComponent as RefreshIcon } from '../images/refresh.svg';
 import { ReactComponent as LoadingIcon } from '../images/loading.svg';
+import { ReactComponent as CogIcon } from './../images/cog.svg';
 import WeatherIcon from 'components/WeatherIcon';
+import { Link } from 'react-router-dom';
 
 const WeatherCardWrapper = styled.div`
   position: relative;
@@ -13,7 +15,16 @@ const WeatherCardWrapper = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow};
   box-sizing: border-box;
   padding: 30px 15px;
-  background-color: ${({ theme }) => theme.foregroundColor}; ;
+  background-color: ${({ theme }) => theme.foregroundColor};
+`;
+
+const Cog = styled(CogIcon)`
+  position: absolute;
+  top: 30px;
+  right: 15px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 `;
 const Location = styled.div`
   font-size: 28px;
@@ -97,9 +108,8 @@ const Refresh = styled.div`
   }
 `;
 
-function WeatherCard({ weatherInfo, fetchData, moment }) {
+function WeatherCard({ cityName, weatherInfo, fetchData, moment }) {
   const {
-    locationName,
     Weather,
     WDSD,
     TEMP,
@@ -111,7 +121,10 @@ function WeatherCard({ weatherInfo, fetchData, moment }) {
 
   return (
     <WeatherCardWrapper>
-      <Location>{locationName}</Location>
+      <Link to="/setting">
+        <Cog />
+      </Link>
+      <Location>{cityName}</Location>
       <Description>{Weather}</Description>
       <CurrentWeather>
         <Temperature>

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getMoment } from 'utils/helper';
+import { useCallback, useEffect, useState } from 'react';
 
 const getWeatherData = (key, locationName) => {
   return fetch(

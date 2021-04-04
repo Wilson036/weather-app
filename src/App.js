@@ -1,8 +1,10 @@
 import { useWeatherAPI } from 'hooks/useWeatherAPI';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Route } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
-import { getMoment } from 'utils/helper';
+import { getMoment, findLocation } from 'utils/helper';
 import WeatherCard from 'views/WeatherCard';
+import WeatherSetting from 'views/WeatherSetting';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -33,25 +35,44 @@ const theme = {
 };
 
 function App() {
+  const [currentCity, setCurrentCity] = useState('臺北市');
+
+  const { locationName, cityName } = useMemo(() => findLocation(currentCity), [
+    currentCity,
+  ]);
   const [weatherInfo, fetchData] = useWeatherAPI({
-    locationName: LOCATION_NAME,
-    cityName: LOCATION_FORECAST_NAME,
+    locationName,
+    cityName,
     autherizeKey: AUTHORIZATION_KEY,
   });
 
+  const setCity = (city) => setCurrentCity(city);
+
   const [currecnTheme, setCurrentTheme] = useState('light');
-  const moment = useMemo(() => getMoment(LOCATION_FORECAST_NAME), []);
+  const moment = useMemo(() => getMoment(cityName), [cityName]);
   useEffect(() => setCurrentTheme(moment === 'day' ? 'light' : 'dark'), [
     moment,
   ]);
+
   return (
     <ThemeProvider theme={theme[currecnTheme]}>
       <Container>
-        <WeatherCard
-          fetchData={fetchData}
-          moment={moment}
-          weatherInfo={weatherInfo}
-        ></WeatherCard>
+        <Route
+          path="/"
+          exact
+          render={() => (
+            <WeatherCard
+              cityName={cityName}
+              fetchData={fetchData}
+              moment={moment}
+              weatherInfo={weatherInfo}
+            />
+          )}
+        ></Route>
+        <Route
+          path="/setting"
+          render={() => <WeatherSetting setCity={setCity} />}
+        ></Route>
       </Container>
     </ThemeProvider>
   );
@@ -60,5 +81,3 @@ function App() {
 export default App;
 
 const AUTHORIZATION_KEY = 'CWB-9E163ECD-9B12-43E7-8C7E-8C380EF33A6B';
-const LOCATION_NAME = '臺北';
-const LOCATION_FORECAST_NAME = '臺北市';
