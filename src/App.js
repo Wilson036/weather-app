@@ -5,6 +5,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import { getMoment, findLocation } from 'utils/helper';
 import WeatherCard from 'views/WeatherCard';
 import WeatherSetting from 'views/WeatherSetting';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -58,22 +59,24 @@ function App() {
   return (
     <ThemeProvider theme={theme[currecnTheme]}>
       <Container>
-        <Route
-          path="/"
-          exact
-          render={() => (
-            <WeatherCard
-              cityName={cityName}
-              fetchData={fetchData}
-              moment={moment}
-              weatherInfo={weatherInfo}
-            />
-          )}
-        ></Route>
-        <Route
-          path="/setting"
-          render={() => <WeatherSetting setCity={setCity} />}
-        ></Route>
+        <Router basename={process.env.PUBLIC_URL}>
+          <Route
+            path="/"
+            exact
+            render={() => (
+              <WeatherCard
+                cityName={cityName}
+                fetchData={fetchData}
+                moment={moment}
+                weatherInfo={weatherInfo}
+              />
+            )}
+          ></Route>
+          <Route
+            path="/setting"
+            render={() => <WeatherSetting setCity={setCity} />}
+          ></Route>
+        </Router>
       </Container>
     </ThemeProvider>
   );
