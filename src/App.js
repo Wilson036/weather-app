@@ -35,7 +35,8 @@ const theme = {
 };
 
 function App() {
-  const [currentCity, setCurrentCity] = useState('臺北市');
+  const defaultCity = localStorage.getItem('city') || '臺北市';
+  const [currentCity, setCurrentCity] = useState(defaultCity);
 
   const { locationName, cityName } = useMemo(() => findLocation(currentCity), [
     currentCity,

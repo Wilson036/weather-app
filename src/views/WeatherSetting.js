@@ -104,6 +104,7 @@ const Save = styled.button`
 
 function WeatherSetting({ setCity }) {
   const locationName = useRef(null);
+  const defaultCity = localStorage.getItem('city') || '臺北市';
   return (
     <WeatherSettingWrapper>
       <Title>設定</Title><StyledLabel htmlFor="location">地區</StyledLabel>
@@ -111,10 +112,7 @@ function WeatherSetting({ setCity }) {
         id="location"
         name="location"
         ref={locationName}
-        defaultValue="臺北市"
-        onChange={() => {
-          console.log(locationName.current.value);
-        }}
+        defaultValue={defaultCity}
       >
         {availableLocations.map(({ cityName }) => (
           <option value={cityName} key={cityName}>
@@ -127,7 +125,13 @@ function WeatherSetting({ setCity }) {
           <Link to="/">返回</Link>
         </Back>
         <Save>
-          <Link to="/" onClick={() => setCity(locationName.current.value)}>
+          <Link
+            to="/"
+            onClick={() => {
+              setCity(locationName.current.value);
+              localStorage.setItem('city', locationName.current.value);
+            }}
+          >
             儲存
           </Link>
         </Save>
